@@ -13,6 +13,10 @@ class Pathfinding {
 		this.zones = {};
 	}
 
+	static setVec3Constructor(cs) {
+		Utils.Vec3Constructor= cs;
+	}
+
 	/**
 	 * (Static) Builds a zone/node set from navigation mesh geometry.
 	 * @param  {THREE.BufferGeometry} geometry
@@ -24,7 +28,7 @@ class Pathfinding {
 			// not-recommended these days, so go ahead and start warning.
 			console.warn('[three-pathfinding]: Use THREE.BufferGeometry, not THREE.Geometry, to create zone.');
 		} else {
-			geometry = new THREE.Geometry().fromBufferGeometry(geometry);
+			geometry = geometry.indices ? geometry : new THREE.Geometry().fromBufferGeometry(geometry);
 		}
 
 		return Builder.buildZone(geometry);
@@ -74,7 +78,7 @@ class Pathfinding {
 	 */
 	getRandomNode (zoneID, groupID, nearPosition, nearRange) {
 
-		if (!this.zones[zoneID]) return new THREE.Vector3();
+		if (!this.zones[zoneID]) return new Utils.Vec3Constructor();
 
 		nearPosition = nearPosition || null;
 		nearRange = nearRange || 0;
@@ -92,7 +96,7 @@ class Pathfinding {
 			}
 		});
 
-		return Utils.sample(candidates) || new THREE.Vector3();
+		return Utils.sample(candidates) || new Utils.Vec3Constructor();
 	}
 
 	/**
@@ -172,7 +176,7 @@ class Pathfinding {
 		channel.stringPull();
 
 		// Return the path, omitting first position (which is already known).
-		const path = channel.path.map((c) => new THREE.Vector3(c.x, c.y, c.z));
+		const path = channel.path.map((c) => new Utils.Vec3Constructor(c.x, c.y, c.z));
 		path.shift();
 		return path;
 	}
@@ -190,7 +194,13 @@ class Pathfinding {
  * @param  {THREE.Vector3} endTarget Updated endpoint.
  * @return {Node} Updated node.
  */
+/*
 Pathfinding.prototype.clampStep = (function () {
+	if (!window.THREE) {
+
+		alert('clampStep not supported without THREEJS');
+		return;
+	}
 	const point = new THREE.Vector3();
 	const plane = new THREE.Plane();
 	const triangle = new THREE.Triangle();
@@ -252,6 +262,7 @@ Pathfinding.prototype.clampStep = (function () {
 		return closestNode;
 	};
 }());
+*/
 
 /**
  * Defines a zone of interconnected groups on a navigation mesh.

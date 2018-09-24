@@ -77,7 +77,7 @@ class AStar {
 
         // The g score is the shortest distance from start to current node.
         // We need to check if the path we have arrived at this neighbour is the shortest one we have seen yet.
-        const gScore = currentNode.g + neighbour.cost;
+        const gScore = currentNode.g + (currentNode.neighbourCosts ? currentNode.neighbourCosts[i] : neighbour.cost);  // currentNode.neighbourCosts ? currentNode.neighbourCosts[i] :
         const beenVisited = neighbour.visited;
 
         if (!beenVisited || gScore < neighbour.g) {
@@ -106,7 +106,11 @@ class AStar {
   }
 
   static heuristic (pos1, pos2) {
-    return Utils.distanceToSquared(pos1, pos2);
+    var deltaX = pos2.x - pos1.x;
+    var deltaY = pos2.y - pos1.y;
+    var deltaZ = pos2.z - pos1.z;
+    // this one is overestimated.. //Utils.distanceToSquared(pos1, pos2);
+    return 2.5 * Math.sqrt(deltaX*deltaX + deltaY*deltaY +deltaZ*deltaZ);  //
   }
 
   static neighbours (graph, node) {

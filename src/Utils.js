@@ -6,7 +6,7 @@ class Utils {
     for ( f = 0, fl = geometry.faces.length; f < fl; f ++ ) {
 
       face = geometry.faces[ f ];
-      face.centroid = new THREE.Vector3( 0, 0, 0 );
+      face.centroid = new Utils.Vec3Constructor( 0, 0, 0 );
 
       face.centroid.add( geometry.vertices[ face.a ] );
       face.centroid.add( geometry.vertices[ face.b ] );
@@ -83,7 +83,7 @@ class Utils {
   }
 
   static setPolygonCentroid (polygon, navigationMesh) {
-    var sum = new THREE.Vector3();
+    var sum = new Utils.Vec3Constructor;
 
     var vertices = navigationMesh.vertices;
 
@@ -266,5 +266,6 @@ class Utils {
     return this.distanceToSquared(a, b) < 0.00001;
   }
 }
+Utils.Vec3Constructor = window.THREE ? THREE.Vector3 : null;
 
 export { Utils };

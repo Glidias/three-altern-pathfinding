@@ -54,6 +54,7 @@ class Builder {
         newGroup.push({
           id: findPolygonIndex(group, p),
           neighbours: neighbours,
+          neighbourCosts: p.neighbourCosts,
           vertexIds: p.vertexIds,
           centroid: p.centroid,
           portals: portals
@@ -73,8 +74,8 @@ class Builder {
    * @return {Object}
    */
   static _buildNavigationMesh (geometry) {
-    Utils.computeCentroids(geometry);
-    geometry.mergeVertices();
+    if (geometry.faces) Utils.computeCentroids(geometry);
+    if (geometry.mergeVertices) geometry.mergeVertices();
     return this._buildPolygonsFromGeometry(geometry);
   }
 
@@ -132,41 +133,123 @@ class Builder {
     });
 
     polygon.neighbours = Array.from(neighbors);
+    polygon.neighbourCosts = this._getCostsOfNeighboursFromCentroid(polygon.neighbours, polygon.centroid);
   }
+
+  static _getCostsOfNeighboursFromCentroid (neighbors, centroid) {
+    return neighbors.map((n) => {
+      var dx = n.centroid.x - centroid.x;
+      var dy = n.centroid.y - centroid.y;
+      var dz = n.centroid.z - centroid.z;
+      return Math.sqrt(dx*dx + dy*dy + dz*dz);
+    });
+  }
+
+  static _alternCentroidFromVerticesIndices(vertices, a, b, c) {
+    a *=3;
+    b *=3;
+    c *=3;
+    var ax = vertices[a]; var ay = vertices[a+1]; var az = vertices[a+2];
+    var bx = vertices[b]; var by = vertices[b+1]; var bz = vertices[b+2];
+    var cx = vertices[c]; var cy = vertices[c+1]; var cz = vertices[c+2];
+    a = ax + bx + cx;
+    b = ay + by + cy;
+    c = az + bz + cz;
+    return new Utils.Vec3Constructor(a/3,b/3,c/3);
+  }
+
+  /*
+  static _alternNormalFromVerticesIndices(vertices, a, b, c) {
+    a *=3;
+    b *=3;
+    c *=3;
+    var ax = vertices[a]; var ay = vertices[a+1]; var az = vertices[a+2];
+    var bx = vertices[b]; var by = vertices[b+1]; var bz = vertices[b+2];
+    var cx = vertices[c]; var cy = vertices[c+1]; var cz = vertices[c+2];
+    var abx = bx - ax;
+    var aby = by - ay;
+    var abz = bz - az;
+    var acx = cx - ax;
+    var acy = cy - ay;
+    var acz = cz - az;
+    var normalX = acz*aby - acy*abz;
+    var normalY = acx*abz - acz*abx;
+    var normalZ = acy*abx - acx*aby;
+    var len = normalX*normalX + normalY*normalY + normalZ*normalZ;
+    if (len == 0) {
+      console.warn('_alternNormalFromVerticesIndices:: Zero length normal detected!'+ [normalX, normalY, normalZ]);
+      normalX = 0;
+      normalY = 1;
+      normalZ = 0;
+      len = 1;
+    }
+    len = 1/Math.sqrt(len);
+    normalX *= len;
+    normalY *= len;
+    normalZ *= len;
+    var offset = ax*normalX + ay*normalY + az*normalZ;
+    var v = new Utils.Vec3Constructor(normalX, normalY, normalZ);
+    v.w = offset;
+    return v;
+  }
+  */
 
   static _buildPolygonsFromGeometry (geometry) {
 
     const polygons = [];
-    const vertices = geometry.vertices;
-    const faceVertexUvs = geometry.faceVertexUvs;
+    var vertices = geometry.vertices;
+    const numVertices = geometry.indices ? geometry.vertices.length / 3 : vertices.length;   // Assumed Altern Geometry if got indices
+    //const faceVertexUvs = geometry.faceVertexUvs;
 
     // Constructing the neighbor graph brute force is O(n²). To avoid that,
     // create a map from vertices to the polygons that contain them, and use it
     // while connecting polygons. This reduces complexity to O(n*m), where 'm'
     // is related to connectivity of the mesh.
     const vertexPolygonMap = new Map(); // Map<vertexID, Set<polygonIndex>>
-    for (let i = 0; i < vertices.length; i++) {
+    for (let i = 0; i < numVertices; i++) {
       vertexPolygonMap.set(i, new Set());
     }
 
-    // Convert the faces into a custom format that supports more than 3 vertices
+  // Convert the faces into a custom format that supports more than 3 vertices (but it really uses more than that? Seems like all trimeshes are used only)
+
+  if (geometry.indices) {  // Assumed Altern Geometry
+      for (i=0; i< geometry.indices.length; i+=3) {
+        polygons.push({
+        id: polygonId++,
+        vertexIds: [geometry.indices[i], geometry.indices[i+1], geometry.indices[i+2]],
+        centroid: this._alternCentroidFromVerticesIndices(geometry.vertices, geometry.indices[i], geometry.indices[i+1], geometry.indices[i+2]),
+        //normal: this._alternNormalFromVerticesIndices(geometry.vertices,geometry.indices[i], geometry.indices[i+1], geometry.indices[i+2]),  // appears to be unneeded
+        neighbours: []
+      });
+      vertexPolygonMap.get(geometry.indices[i]).add(polygons.length - 1);
+      vertexPolygonMap.get(geometry.indices[i+1]).add(polygons.length - 1);
+      vertexPolygonMap.get(geometry.indices[i+2]).add(polygons.length - 1);
+    }
+
+    var alternVertsConv = [];
+    for (i=0; i< geometry.vertices.length; i+=3) {
+      alternVertsConv.push( new Utils.Vec3Constructor(geometry.vertices[i], geometry.vertices[i+1], geometry.vertices[i+2]));
+    }
+    vertices = alternVertsConv;
+  }
+  else {  // Assumed THREEJS Geometry
     geometry.faces.forEach((face) => {
       polygons.push({
         id: polygonId++,
         vertexIds: [face.a, face.b, face.c],
         centroid: face.centroid,
-        normal: face.normal,
+        //normal: face.normal,
         neighbours: []
       });
       vertexPolygonMap.get(face.a).add(polygons.length - 1);
       vertexPolygonMap.get(face.b).add(polygons.length - 1);
       vertexPolygonMap.get(face.c).add(polygons.length - 1);
     });
-
+  }
     const navigationMesh = {
       polygons: polygons,
       vertices: vertices,
-      faceVertexUvs: faceVertexUvs
+     // faceVertexUvs: faceVertexUvs
     };
 
     // Build a list of adjacent polygons
