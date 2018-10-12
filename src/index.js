@@ -167,10 +167,13 @@ class Pathfinding {
 
 			if (nextPolygon) {
 				const portals = getPortalFromTo(polygon, nextPolygon);
-				channel.push(
+				if (typeof portals[0] === 'number') channel.push(
 					vertices[portals[0]],
 					vertices[portals[1]]
-				);
+				)
+				else {
+					channel.push(portals[0], portals[1]);
+				}
 			}
 		}
 		channel.push(targetPosition);
