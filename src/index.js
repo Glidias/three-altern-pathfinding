@@ -11,6 +11,7 @@ import { Channel } from './Channel';
 class Pathfinding {
 	constructor () {
 		this.zones = {};
+		this.delPolygonId = 0;
 	}
 
 	static setVec3Constructor(cs) {
@@ -151,7 +152,7 @@ class Pathfinding {
 
 		const getPortalFromTo = function (a, b) {
 			for (var i = 0; i < a.neighbours.length; i++) {
-				if (a.neighbours[i] === b.id) {
+				if (a.neighbours[i] === b) {
 					return a.portals[i];
 				}
 			}
@@ -250,7 +251,7 @@ Pathfinding.prototype.clampStep = (function () {
 			if (depth > 2) continue;
 
 			for (let i = 0; i < currentNode.neighbours.length; i++) {
-				const neighbour = nodes[currentNode.neighbours[i]];
+				const neighbour = currentNode.neighbours[i];
 				if (neighbour.id in nodeDepth) continue;
 
 				nodeQueue.push(neighbour);

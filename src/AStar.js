@@ -65,7 +65,7 @@ class AStar {
       currentNode.closed = true;
 
       // Find all neighbours for the current node. Optionally find diagonal neighbours as well (false by default).
-      const neighbours = this.neighbours(graph, currentNode);
+      const neighbours = currentNode.neighbours;
 
       for (let i = 0, il = neighbours.length; i < il; i++) {
         const neighbour = neighbours[i];
@@ -111,16 +111,6 @@ class AStar {
     var deltaZ = pos2.z - pos1.z;
     // this one is overestimated.. //Utils.distanceToSquared(pos1, pos2);
     return 2.5 * Math.sqrt(deltaX*deltaX + deltaY*deltaY +deltaZ*deltaZ);  //
-  }
-
-  static neighbours (graph, node) {
-    const ret = [];
-
-    for (let e = 0; e < node.neighbours.length; e++) {
-      ret.push(graph[node.neighbours[e]]);
-    }
-
-    return ret;
   }
 }
 

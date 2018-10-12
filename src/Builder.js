@@ -26,11 +26,13 @@ class Builder {
 
     zone.groups = [];
 
+    /*  // Not needed anymore
     const findPolygonIndex = function (group, p) {
       for (let i = 0; i < group.length; i++) {
         if (p === group[i]) return i;
       }
     };
+    */
 
     // TODO: This block represents 50-60% of navigation mesh construction time,
     // and could probably be optimized. For example, construct portals while
@@ -38,11 +40,9 @@ class Builder {
     groups.forEach((group) => {
 
       const newGroup = [];
-
       group.forEach((p) => {
 
-        // TODO: Optimize.
-        const neighbours = p.neighbours.map((n) => findPolygonIndex(group, n));
+        // Not needed anymore, use direct neighbour reference
 
         // Build a portal list to each neighbour
         const portals = p.neighbours.map((n) => this._getSharedVerticesInOrder(p, n));
@@ -50,16 +50,9 @@ class Builder {
         p.centroid.x = Utils.roundNumber(p.centroid.x, 2);
         p.centroid.y = Utils.roundNumber(p.centroid.y, 2);
         p.centroid.z = Utils.roundNumber(p.centroid.z, 2);
-
-        newGroup.push({
-          id: findPolygonIndex(group, p),
-          neighbours: neighbours,
-          neighbourCosts: p.neighbourCosts,
-          vertexIds: p.vertexIds,
-          centroid: p.centroid,
-          portals: portals
-        });
-
+   
+        p.portals = portals;
+        newGroup.push(p);
       });
 
       zone.groups.push(newGroup);
