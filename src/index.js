@@ -134,14 +134,16 @@ class Pathfinding {
 	 * @param  {THREE.Vector3} targetPosition Destination.
 	 * @param  {string} zoneID ID of current zone.
 	 * @param  {number} groupID Current group ID.
+	 * @param  {Node} closestNode Manually supply startPosition node
+	 * @param  {Node} farthestNode Manually supply targetPosition node
 	 * @return {Array<THREE.Vector3>} Array of points defining the path.
 	 */
-	findPath (startPosition, targetPosition, zoneID, groupID) {
+	findPath (startPosition, targetPosition, zoneID, groupID, closestNode, farthestNode) {
 		const nodes = this.zones[zoneID].groups[groupID];
 		const vertices = this.zones[zoneID].vertices;
 
-		const closestNode = this.getClosestNode(startPosition, zoneID, groupID);
-		const farthestNode = this.getClosestNode(targetPosition, zoneID, groupID, true);
+		closestNode = closestNode ? closestNode : this.getClosestNode(startPosition, zoneID, groupID);
+		farthestNode = farthestNode ? farthestNode : this.getClosestNode(targetPosition, zoneID, groupID, true);
 
 		// If we can't find any node, just go straight to the target
 		if (!closestNode || !farthestNode) {

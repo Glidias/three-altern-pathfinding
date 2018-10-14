@@ -209,10 +209,12 @@ class Builder {
       for (i=0; i< geometry.indices.length; i+=3) {
         polygons.push({
         id: polygonId++,
+        index: polygons.length,
         vertexIds: [geometry.indices[i], geometry.indices[i+1], geometry.indices[i+2]],
         centroid: this._alternCentroidFromVerticesIndices(geometry.vertices, geometry.indices[i], geometry.indices[i+1], geometry.indices[i+2]),
         //normal: this._alternNormalFromVerticesIndices(geometry.vertices,geometry.indices[i], geometry.indices[i+1], geometry.indices[i+2]),  // appears to be unneeded
-        neighbours: []
+        neighbours: [],
+        transformId: 0
       });
       vertexPolygonMap.get(geometry.indices[i]).add(polygons.length - 1);
       vertexPolygonMap.get(geometry.indices[i+1]).add(polygons.length - 1);
