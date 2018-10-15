@@ -160,6 +160,8 @@ class Pathfinding {
 			}
 		};
 
+		if (paths.length === 0) return paths;
+
 		// We have the corridor, now pull the rope.
 		const channel = new Channel();
 		channel.push(startPosition);
