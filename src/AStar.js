@@ -13,6 +13,18 @@ class AStar {
       node.visited = false;
       node.closed = false;
       node.parent = null;
+      if (node.subMesh) {
+         for (let y = 0; y < node.subMesh.polygons.length; y++) {
+            const n = node.subMesh.polygons[y];
+            n.f = 0;
+            n.g = 0;
+            n.h = 0;
+            n.cost = 1.0;
+            n.visited = false;
+            n.closed = false;
+            n.parent = null;
+         }
+      }
     }
   }
 

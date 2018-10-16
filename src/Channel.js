@@ -13,6 +13,31 @@ class Channel {
     });
   }
 
+  pushDegenerate (p1, p2) {
+    var dx = p2.x - p1.x;
+    var dy = p2.y - p1.y;
+    var dz = p2.z - p2.z;
+    var dist = dx*dx + dy*dy + dz*dz;
+    this.portals.push({
+      left: p1,
+      right: p2
+    });
+    return dist;
+  }
+
+  pushDegenerate2 (p1, p2, dist) {
+    var dx = p2.x - p1.x;
+    var dy = p2.y - p1.y;
+    var dz = p2.z - p2.z;
+    var tryDist = dx*dx + dy*dy + dz*dz;
+    if (tryDist < dist) {
+      dist = tryDist;
+      this.portals[this.portals.length - 1].left = p1;
+      this.portals[this.portals.length - 1].right = p2;
+    }
+    return dist;
+  }
+
   stringPull () {
     const portals = this.portals;
     const pts = [];

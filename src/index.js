@@ -175,12 +175,20 @@ class Pathfinding {
 
 			if (nextPolygon) {
 				const portals = getPortalFromTo(polygon, nextPolygon);
-				if (typeof portals[0] === 'number') channel.push(
-					vertices[portals[0]],
-					vertices[portals[1]]
-				)
+				const numType = typeof portals[0] === 'number';
+				const a = numType ? vertices[portals[0]] : portals[0];
+				const b = numType ? vertices[portals[1]] : portals[1];
+				var dist;
+				if (!polygon.degenerate && !nextPolygon.degenerate) {
+					channel.push(a, b);
+				}
 				else {
-					channel.push(portals[0], portals[1]);
+					if (polygon.degenerate) {
+						dist = channel.pushDegenerate2(a, b, dist);
+					}
+					else {
+						dist = channel.pushDegenerate(a, b);
+					}
 				}
 			}
 		}
