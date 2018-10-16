@@ -18,6 +18,10 @@ class Pathfinding {
 		Utils.Vec3Constructor= cs;
 	}
 
+	static setBuilderPrecision(v) {
+		Builder.PRECISION = v;
+	}
+
 	/**
 	 * (Static) Builds a zone/node set from navigation mesh geometry.
 	 * @param  {THREE.BufferGeometry} geometry

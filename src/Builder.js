@@ -14,11 +14,13 @@ class Builder {
 
     const zone = {};
 
-    navMesh.vertices.forEach((v) => {
-      v.x = Utils.roundNumber(v.x, 2);
-      v.y = Utils.roundNumber(v.y, 2);
-      v.z = Utils.roundNumber(v.z, 2);
-    });
+    if (Builder.PRECISION) {
+      navMesh.vertices.forEach((v) => {
+        v.x = Utils.roundNumber(v.x, Builder.PRECISION);
+        v.y = Utils.roundNumber(v.y, Builder.PRECISION);
+        v.z = Utils.roundNumber(v.z, Builder.PRECISION);
+      });
+    }
 
     zone.vertices = navMesh.vertices;
 
@@ -290,9 +292,10 @@ class Builder {
         sharedVerticesOrdered.push(vId);
       }
     });
-
+    
     return sharedVerticesOrdered;
   }
 }
+Builder.PRECISION = 2;
 
 export { Builder };
