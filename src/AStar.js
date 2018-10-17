@@ -13,6 +13,7 @@ class AStar {
       node.visited = false;
       node.closed = false;
       node.parent = null;
+      node.restrict = null;
       if (node.subMesh) {
          for (let y = 0; y < node.subMesh.polygons.length; y++) {
             const n = node.subMesh.polygons[y];
@@ -23,6 +24,7 @@ class AStar {
             n.visited = false;
             n.closed = false;
             n.parent = null;
+            n.restrict = null;
          }
       }
     }
@@ -47,7 +49,52 @@ class AStar {
     });
   }
 
-  static search (graph, start, end) {
+  // Restriction hack methods when A-star searching through degenerate (dummy zero-area) nodes
+
+  static isRestricted (portal, res) {
+    var dp1 = res.x * portal[0].x + res.z * portal[0].z;
+    var dp2 = res.x * portal[1].x + res.z * portal[1].z;
+    return (dp1 < res.a && dp2 < res.a) || (dp1 > res.b && dp2 > res.b); 
+    // result =
+    // console.log(result + ": :"+dp1 + ", "+dp2 + "vs:" + res.a + ", "+res.b);
+    // return result;
+  }
+
+  static setRestricted (fromNode, target, vertices) {
+    var portal = fromNode.parent ? fromNode.parent.portals[fromNode.parent.neighbours.indexOf(fromNode)] : this.findAnyOtherPortalBesides(fromNode, target);
+    if (!portal) {
+      console.log("Failed to find restrict portal");
+      return;
+    }
+    if (typeof(portal[0]) === "number") {
+      portal = [
+       vertices[portal[0]], vertices[portal[1]]
+      ];
+    }
+    var dx = portal[1].x - portal[0].x;
+    var dy = portal[1].z - portal[0].z;
+    target.restrict = target.restrict ? target.restrict : new Utils.Vec3Constructor();
+    target.restrict.x = dx;
+    target.restrict.z = dy;
+    target.restrict.a = dx*portal[0].x + dy*portal[0].z;
+    target.restrict.b = dx*portal[1].x + dy*portal[1].z;
+  }
+
+  static findAnyOtherPortalBesides (fromNode, target) {
+    console.log("Makeshift portal select");
+    var i = fromNode.neighbours.length;
+    while(--i > -1) {
+      if (fromNode.neighbours[i] !== target) {
+        const arr = fromNode.portals[i].concat();
+        arr.reverse();
+        return arr;
+      }
+    }
+  }
+
+  // The main A-star search function
+
+  static search (graph, start, end, vertices) {
     this.init(graph);
     //heuristic = heuristic || astar.manhattan;
 
@@ -82,7 +129,8 @@ class AStar {
       for (let i = 0, il = neighbours.length; i < il; i++) {
         const neighbour = neighbours[i];
 
-        if (neighbour.closed) {
+       
+        if ( neighbour.closed || (currentNode.restrict && this.isRestricted(currentNode.portals[i], currentNode.restrict)) ) {
           // Not a valid node to process, skip to next neighbour.
           continue;
         }
@@ -96,6 +144,13 @@ class AStar {
 
           // Found an optimal (so far) path to this node.  Take score for node to see how good it is.
           neighbour.visited = true;
+          if (currentNode.restrict && neighbour.degenerate) {
+            neighbour.restrict = currentNode.restrict;
+          }
+          else if (neighbour.degenerate && !currentNode.degenerate) {
+            this.setRestricted(currentNode, neighbour, vertices);
+          }
+         
           neighbour.parent = currentNode;
           if (!neighbour.centroid || !end.centroid) throw new Error('Unexpected state');
           neighbour.h = neighbour.h || this.heuristic(neighbour.centroid, end.centroid);

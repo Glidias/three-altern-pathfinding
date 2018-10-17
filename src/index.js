@@ -154,7 +154,7 @@ class Pathfinding {
 			return null;
 		}
 
-		const paths = AStar.search(nodes, closestNode, farthestNode);
+		const paths = AStar.search(nodes, closestNode, farthestNode, vertices);
 
 		const getPortalFromTo = function (a, b) {
 			for (var i = 0; i < a.neighbours.length; i++) {
