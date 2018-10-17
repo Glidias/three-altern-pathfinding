@@ -169,6 +169,7 @@ class Pathfinding {
 		// We have the corridor, now pull the rope.
 		const channel = new Channel();
 		channel.push(startPosition);
+		var dist;
 		for (let i = 0; i < paths.length; i++) {
 			const polygon = paths[i];
 			const nextPolygon = paths[i + 1];
@@ -178,17 +179,18 @@ class Pathfinding {
 				const numType = typeof portals[0] === 'number';
 				const a = numType ? vertices[portals[0]] : portals[0];
 				const b = numType ? vertices[portals[1]] : portals[1];
-				var dist;
+				
 				if (!polygon.degenerate && !nextPolygon.degenerate) {
 					channel.push(a, b);
 				}
 				else {
-					if (polygon.degenerate) {
-						dist = channel.pushDegenerate2(a, b, dist);
-					}
-					else {
+					if (!polygon.degenerate && nextPolygon.degenerate) { // new degenerate 
 						dist = channel.pushDegenerate(a, b);
 					}
+					else {	// resume degenerate
+						dist = channel.pushDegenerate2(a, b, dist);
+					}
+					
 				}
 			}
 		}
@@ -198,6 +200,7 @@ class Pathfinding {
 		// Return the path, omitting first position (which is already known).
 		const path = channel.path.map((c) => new Utils.Vec3Constructor(c.x, c.y, c.z));
 		path.shift();
+		this.lastChannel  = channel;
 		return path;
 	}
 }
