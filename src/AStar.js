@@ -130,7 +130,7 @@ class AStar {
         const neighbour = neighbours[i];
 
        
-        if ( neighbour.closed || (currentNode.restrict && this.isRestricted(currentNode.portals[i], currentNode.restrict)) ) {
+        if ( neighbour.closed || neighbour.disabled || (currentNode.restrict && this.isRestricted(currentNode.portals[i], currentNode.restrict)) ) {
           // Not a valid node to process, skip to next neighbour.
           continue;
         }
@@ -144,6 +144,8 @@ class AStar {
 
           // Found an optimal (so far) path to this node.  Take score for node to see how good it is.
           neighbour.visited = true;
+
+          // Determine degenerate portal traversal restrictions formed by obstacles at borders (This method is hackish but seems to work in all cases (encountered so far))
           if (currentNode.restrict && neighbour.degenerate) {
             neighbour.restrict = currentNode.restrict;
           }
