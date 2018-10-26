@@ -61,7 +61,7 @@ class AStar {
   }
 
   static setRestricted (fromNode, target, vertices) {
-    var portal = fromNode.parent ? fromNode.parent.portals[fromNode.parent.neighbours.indexOf(fromNode)] : this.findAnyOtherPortalBesides(fromNode, target);
+    var portal = fromNode.portals[fromNode.neighbours.indexOf(target)];
     if (!portal) {
       console.log("Failed to find restrict portal");
       return;
@@ -80,6 +80,7 @@ class AStar {
     target.restrict.b = dx*portal[1].x + dy*portal[1].z;
   }
 
+  /*
   static findAnyOtherPortalBesides (fromNode, target) {
     console.log("Makeshift portal select");
     var i = fromNode.neighbours.length;
@@ -91,6 +92,7 @@ class AStar {
       }
     }
   }
+  */
 
   // The main A-star search function
 
